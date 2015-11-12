@@ -68,10 +68,6 @@ type Conf struct {
 	LogstashElasticHosts expr.LogstashElasticHosts // CSV Elastic Hosts (All part of the same cluster) that stores logstash documents, i.e http://ny-elastic01:9200
 	InfluxConfig         client.Config
 
-	UdpListenPort int
-	UdpRedisHost  string
-	UdpRedisDb    int
-
 	tree            *parse.Tree
 	node            parse.Node
 	unknownTemplate string
