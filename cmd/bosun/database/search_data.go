@@ -172,15 +172,12 @@ func (d *dataAccess) LoadLastInfos() (map[string]map[string]*LastInfo, error) {
 	defer collect.StartTimer("redis", opentsdb.TagSet{"op": "LoadLast"})()
 	conn := d.GetConnection()
 	defer conn.Close()
-	m := map[string]map[string]*LastInfo{}
+
 	b, err := redis.Bytes(conn.Do("GET", "search:last"))
 	if err != nil {
-		if err == redis.ErrNil {
-			return m, nil
-		}
 		return nil, err
 	}
-
+	var m map[string]map[string]*LastInfo
 	err = util.UnmarshalGzipJson(b, &m)
 	if err != nil {
 		return nil, err
