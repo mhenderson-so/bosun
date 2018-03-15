@@ -248,6 +248,10 @@ you will need to log into your Azure Enterprise Agreement portal (ea.azure.com),
 "Download Usage" link, then choose "API Key" on the download page. You can then generate your API
 key there. Keys are valid 6 months, so you will require some maintenance of this collector twice a year.
 
+LogPricesheet tells scollector to log the pricesheet information. This is the list of fixed prices that
+Azure publishes so you can track the cost of individual resources over time. By default this is off
+as it would only provide value in very specific situations.
+
 LogBillingDetails tells scollector to add the following tags to your metrics:
    - costcenter
 	 - accountname
@@ -257,18 +261,24 @@ LogResourceDetails tell scollector to add the following tags to your metrics:
    - resoucegroup
 	 - resourcelocation
 
-LogExtraTags tells scollector to take resource tags and add them to your metrics. Careful: this will
-add all tags as they exist in Azure, so you may end up with a large number of distinct tags if you
-are not careful. It will not process any tags that begin with "hidden".
+LogExtraTags tells scollector to take resource tags and add them to your metrics. If you enable this
+option, you must also populate ExtraTagFilter. This ensure that you will not add all tags as they exist
+in Azure, avoiding ending up with a large number of distinct tags. It will never process any tags that
+begin with "hidden".
 
 If you are a heavy Azure EA user, then these additional tags may be useful for breaking down costs.
+
+ExtraTagFilter is a regular expression that is used for whitelisting tags that you want to include
+in scollector.
 
 	[[AzureEA]]
 	  EANumber = "123456"
 	  APIKey = "joiIiwiaXNzIjoiZWEubWljcm9zb2Z0YXp1cmUuY29tIiwiYXVkIjoiY2xpZW50LmVhLm1"
+	  LogPricesheet = false
 	  LogBillingDetails = false
 	  LogResourceDetails = false
 	  LogExtraTags = false
+	  ExtraTagFilter = "^(client|department)$"
 
 Process: processes to monitor.
 

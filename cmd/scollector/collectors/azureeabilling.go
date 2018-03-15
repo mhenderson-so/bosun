@@ -3,6 +3,7 @@ package collectors
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -75,16 +76,22 @@ func processAzureEAReports(reports *azureeabilling.UsageReports, md *opentsdb.Mu
 			continue
 		}
 
-		csv := azBillConf.AZEABillingConfig.GetMonthReportsCSV(r, azureeabilling.DownloadForStructs)
+		toDownload := azureeabilling.DownloadDetail
+		if azBillConf.CollectorConfig.LogPricesheet {
+			toDownload = azureeabilling.DownloadForStructs
+		}
+		csv := azBillConf.AZEABillingConfig.GetMonthReportsCSV(r, toDownload)
 		structs, err := csv.ConvertToStructs()
 
 		if err != nil {
 			return err
 		}
-		for _, p := range structs.PriceSheetReport {
-			err := processAzureEAPriceSheetRow(p, md)
-			if err != nil {
-				return err
+		if azBillConf.CollectorConfig.LogPricesheet {
+			for _, p := range structs.PriceSheetReport {
+				err := processAzureEAPriceSheetRow(p, md)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, d := range structs.DetailReport {
@@ -157,11 +164,15 @@ func processAzureEADetailRow(p *azureeabilling.DetailRow, md *opentsdb.MultiData
 
 	//Only log extra Azure tags if enabled in the config
 	if azBillConf.CollectorConfig.LogExtraTags {
+		filter := regexp.MustCompile(azBillConf.CollectorConfig.ExtraTagFilter)
 		if p.Tags != "" {
 			customTags := make(map[string]string)
 			json.Unmarshal([]byte(p.Tags), &customTags)
 			for t, v := range customTags {
 				if t[:6] == "hidden" {
+					continue
+				}
+				if !filter.MatchString(t) {
 					continue
 				}
 				value, _ := opentsdb.Clean(v)
